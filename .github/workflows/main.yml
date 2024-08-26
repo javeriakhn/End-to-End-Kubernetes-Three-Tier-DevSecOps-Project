@@ -1,4 +1,3 @@
-
 name: Build and Deploy Frontend to ECR
 
 on:
@@ -61,7 +60,12 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}  # GitHub token stored in secrets
       run: |
         cd Kubernetes-Manifests-file/Frontend
-        git pull origin main --rebase  # Automatically rebase to resolve divergences
+        git fetch origin main
+        git merge origin/main || git merge --abort
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "Merge conflicts detected, stopping the workflow."
+          exit 1
+        fi
         imageTag=$(grep -oP '(?<=frontend:)[^ ]+' deployment.yaml)
         sed -i "s/frontend:${imageTag}/frontend:${{ github.event.inputs.tag }}/" deployment.yaml
         git add deployment.yaml
@@ -70,6 +74,7 @@ jobs:
 
     - name: Cleanup Workspace
       run: rm -rf *
+
 
 
 
