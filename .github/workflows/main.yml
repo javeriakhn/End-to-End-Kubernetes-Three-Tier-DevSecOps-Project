@@ -60,37 +60,12 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}  # GitHub token stored in secrets
       run: |
         cd Kubernetes-Manifests-file/Frontend
-
-        # Attempt to pull the latest changes with rebase
-        git pull origin main --rebase
-
-        # Check if rebase resulted in a conflict
-        if [ $? -ne 0 ]; then
-          echo "Merge conflicts detected. Attempting to resolve automatically."
-
-          # Abort rebase and attempt to resolve conflicts manually
-          git rebase --abort
-
-          # Retry the pull without rebase to avoid conflicts
-          git pull origin main --no-rebase
-
-          # If conflicts still exist, exit the workflow with an error
-          if [ $? -ne 0 ]; then
-            echo "Manual intervention required to resolve merge conflicts."
-            exit 1
-          fi
-        fi
-        
-        # Extract the current image tag from the deployment file
         imageTag=$(grep -oP '(?<=frontend:)[^ ]+' deployment.yaml)
-
-        # Update the deployment file with the new image tag
-        sed -i "s/frontend:${imageTag}/frontend:${{ github.event.inputs.tag }}/" deployment.yaml
-        
-        # Commit and push the changes
+        sed -i "s/backend:${imageTag}/frontend:${{ github.event.inputs.tag }}/" deployment.yaml
         git add deployment.yaml
-        git commit -m "Update deployment image to version ${{ github.event.inputs.tag }}"
+        git commit -m "Update deployment Image to version ${{ github.event.inputs.tag }}"
         git push https://${{ secrets.TOKEN }}@github.com/${{ github.repository }} HEAD:main
+
 
     - name: Cleanup Workspace
       run: rm -rf *
