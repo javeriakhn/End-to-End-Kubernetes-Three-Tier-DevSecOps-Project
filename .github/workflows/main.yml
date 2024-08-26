@@ -61,14 +61,15 @@ jobs:
       run: |
         cd Kubernetes-Manifests-file/Frontend
         imageTag=$(grep -oP '(?<=frontend:)[^ ]+' deployment.yaml)
-        sed -i "s/backend:${imageTag}/frontend:${{ github.event.inputs.tag }}/" deployment.yaml
+        sed -i "s/frontend:${imageTag}/frontend:${{ github.event.inputs.tag }}/" deployment.yaml
         git add deployment.yaml
         git commit -m "Update deployment Image to version ${{ github.event.inputs.tag }}"
         git push https://${{ secrets.TOKEN }}@github.com/${{ github.repository }} HEAD:main
 
-
     - name: Cleanup Workspace
-      run: rm -rf *
+      run: |
+        git clean -dfx
+        git reset --hard
 
 
 
