@@ -60,6 +60,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}  # GitHub token stored in secrets
       run: |
         cd Kubernetes-Manifests-file/Frontend
+        git pull origin main  # Pull the latest changes from the remote
         imageTag=$(grep -oP '(?<=frontend:)[^ ]+' deployment.yaml)
         sed -i "s/frontend:${imageTag}/frontend:${{ github.event.inputs.tag }}/" deployment.yaml
         git add deployment.yaml
@@ -68,6 +69,7 @@ jobs:
 
     - name: Cleanup Workspace
       run: rm -rf *
+
 
 
 
