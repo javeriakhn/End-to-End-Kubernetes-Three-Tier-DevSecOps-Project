@@ -69,6 +69,13 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
       run: |
         cd Kubernetes-Manifests-file/Frontend
+        # Fetch latest changes from remote
+        git fetch origin main
+        
+        # Rebase local changes on top of the remote changes
+        git rebase origin/main
+        
+        # If rebase is successful, proceed to update and push
         imageTag=$(grep -oP '(?<=frontend:)[^ ]+' deployment.yaml)
         sed -i "s/frontend:${imageTag}/frontend:${{ github.event.inputs.tag }}/" deployment.yaml
         git add deployment.yaml
