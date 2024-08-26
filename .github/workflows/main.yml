@@ -60,12 +60,17 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}  # GitHub token stored in secrets
       run: |
         cd Kubernetes-Manifests-file/Frontend
+        
+        # Attempt to pull with rebase
         git pull origin main --rebase || git pull origin main --no-rebase || git pull origin main --ff-only
-        if [ $? -ne 0 ]; then
-          echo "Merge conflicts detected or pull failed."
+        
+        # Check for merge conflicts
+        if [ $? -ne 0 ] || [ -n "$(git ls-files -u)" ]; then
+          echo "Merge conflicts detected. Please resolve conflicts manually."
           exit 1
         fi
         
+        # Proceed if no conflicts
         imageTag=$(grep -oP '(?<=frontend:)[^ ]+' deployment.yaml)
         sed -i "s/frontend:${imageTag}/frontend:${{ github.event.inputs.tag }}/" deployment.yaml
         git add deployment.yaml
@@ -74,6 +79,7 @@ jobs:
 
     - name: Cleanup Workspace
       run: rm -rf *
+
 
 
 
