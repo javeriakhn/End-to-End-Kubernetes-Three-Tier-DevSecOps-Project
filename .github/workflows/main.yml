@@ -11,7 +11,7 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}  # AWS Account ID from GitHub Secrets
       AWS_ECR_REPO_NAME: 'backend'               # Replace with your actual ECR repository name
       AWS_DEFAULT_REGION: 'us-east-1'
-      REPOSITORY_URI: ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_DEFAULT_REGION }}.amazonaws.com/
+      REPOSITORY_URI: ${{ secrets.ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/
 
     steps:
     - name: Checkout from Git
@@ -47,7 +47,8 @@ jobs:
         aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
     - name: Login to Amazon ECR
-      run: echo "${{ secrets.AWS_ACCESS_KEY_ID }}" | docker login --username AWS --password-stdin ${{ env.REPOSITORY_URI }}
+      run: |
+        aws ecr get-login-password --region ${{ env.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ env.REPOSITORY_URI }}
 
     - name: Tag Docker Image
       run: docker tag backend ${{ env.REPOSITORY_URI }}${{ env.AWS_ECR_REPO_NAME }}:${{ github.run_number }}
@@ -73,3 +74,4 @@ jobs:
 
     - name: Cleanup Workspace
       run: rm -rf *
+
