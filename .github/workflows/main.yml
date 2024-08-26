@@ -1,0 +1,77 @@
+name: Backend CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to the main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}  # AWS Account ID from GitHub Secrets
+      AWS_ECR_REPO_NAME: 'backend'    # Replace with your actual ECR repository name
+      AWS_DEFAULT_REGION: 'us-east-1'
+      REPOSITORY_URI: ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_DEFAULT_REGION }}.amazonaws.com/
+
+    steps:
+    - name: Checkout from Git
+      uses: actions/checkout@v3
+
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'  # You can choose 'zulu', 'adopt', or other distributions
+        java-version: '11'       # Specify the Java version you need
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '14'  # Specify the Node.js version you need
+
+    - name: Docker System Prune
+      run: docker system prune -f
+
+    - name: Docker Container Prune
+      run: docker container prune -f
+
+    - name: Build Docker Image
+      run: |
+        cd Application-Code/backend
+        docker build -t backend .
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
+
+    - name: Login to Amazon ECR
+      run: echo "${{ secrets.AWS_ACCESS_KEY_ID }}" | docker login --username AWS --password-stdin ${{ env.REPOSITORY_URI }}
+
+    - name: Tag Docker Image
+      run: docker tag backend ${{ env.REPOSITORY_URI }}${{ env.AWS_ECR_REPO_NAME }}:${{ github.run_number }}
+
+    - name: Push Docker Image to ECR
+      run: docker push ${{ env.REPOSITORY_URI }}${{ env.AWS_ECR_REPO_NAME }}:${{ github.run_number }}
+
+    - name: Configure Git
+      run: |
+        git config user.email "javeriakashan97@gmail.com"
+        git config user.name "javeriakhn"
+
+    - name: Update Deployment file
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub token stored in secrets
+      run: |
+        cd Kubernetes-Manifests-file/Backend
+        imageTag=$(grep -oP '(?<=backend:)[^ ]+' deployment.yaml)
+        sed -i "s/${{ env.AWS_ECR_REPO_NAME }}:${imageTag}/${{ env.AWS_ECR_REPO_NAME }}:${{ github.run_number }}/" deployment.yaml
+        git add deployment.yaml
+        git commit -m "Update deployment Image to version ${{ github.run_number }}"
+        git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:master
+
+    - name: Cleanup Workspace
+      run: rm -rf *
