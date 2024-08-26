@@ -1,11 +1,10 @@
-
-name: Build and Deploy to ECR
+name: Build and Deploy Frontend to ECR
 
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Docker image tag'
+        description: 'Docker image tag for frontend'
         required: true
         default: 'latest'
         type: string
@@ -18,16 +17,10 @@ jobs:
     - name: Checkout from Git
       uses: actions/checkout@v3
 
-    - name: Set up JDK
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: '11'
-
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '20'
+        node-version: '14'
 
     - name: Docker System Prune
       run: docker system prune -f
@@ -38,7 +31,7 @@ jobs:
     - name: Build Docker Image
       run: |
         cd Application-Code/frontend
-        docker build -t backend:${{ github.event.inputs.tag }} .
+        docker build -t frontend:${{ github.event.inputs.tag }} .
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
@@ -55,7 +48,7 @@ jobs:
       run: docker tag frontend:${{ github.event.inputs.tag }} 891377240096.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.event.inputs.tag }}
 
     - name: Push Docker Image to ECR
-      run: docker push 891377240096.dkr.ecr.us-east-1.amazonaws.com/frontend:latest:${{ github.event.inputs.tag }}
+      run: docker push 891377240096.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.event.inputs.tag }}
 
     - name: Configure Git
       run: |
@@ -66,13 +59,15 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}  # GitHub token stored in secrets
       run: |
-        cd Kubernetes-Manifests-file/frontend
+        cd Kubernetes-Manifests-file/Frontend
         imageTag=$(grep -oP '(?<=frontend:)[^ ]+' deployment.yaml)
-        sed -i "s/backend:${imageTag}/frontend:${{ github.event.inputs.tag }}/" deployment.yaml
+        sed -i "s/frontend:${imageTag}/frontend:${{ github.event.inputs.tag }}/" deployment.yaml
         git add deployment.yaml
         git commit -m "Update deployment Image to version ${{ github.event.inputs.tag }}"
         git push https://${{ secrets.TOKEN }}@github.com/${{ github.repository }} HEAD:main
 
     - name: Cleanup Workspace
       run: rm -rf *
+
+
 
