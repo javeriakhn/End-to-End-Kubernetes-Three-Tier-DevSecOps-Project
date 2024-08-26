@@ -20,7 +20,7 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '20'  # Force use of Node.js 20
+        node-version: '14'
 
     - name: Docker System Prune
       run: docker system prune -f
@@ -36,7 +36,6 @@ jobs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        node-version: '20'  # Explicitly using Node.js 20
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
@@ -61,12 +60,13 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}  # GitHub token stored in secrets
       run: |
         cd Kubernetes-Manifests-file/Frontend
-        git fetch origin main
-        git merge origin/main || git merge --abort
-        if [ -n "$(git status --porcelain)" ]; then
-          echo "Merge conflicts detected, stopping the workflow."
+
+        git pull origin main --allow-unrelated-histories
+        if [ $? -ne 0 ]; then
+          echo "Merge conflicts detected or pull failed."
           exit 1
         fi
+        
         imageTag=$(grep -oP '(?<=frontend:)[^ ]+' deployment.yaml)
         sed -i "s/frontend:${imageTag}/frontend:${{ github.event.inputs.tag }}/" deployment.yaml
         git add deployment.yaml
@@ -75,6 +75,7 @@ jobs:
 
     - name: Cleanup Workspace
       run: rm -rf *
+
 
 
 
