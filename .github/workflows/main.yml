@@ -61,7 +61,7 @@ jobs:
       run: |
         cd Kubernetes-Manifests-file/Frontend
 
-        # Try pulling the latest changes with rebase
+        # Attempt to pull the latest changes with rebase
         git pull origin main --rebase
 
         # Check if rebase resulted in a conflict
