@@ -74,6 +74,7 @@ jobs:
         
         # Rebase local changes on top of the remote changes
         git rebase origin/main
+        git rebase --abort
         
         # If rebase is successful, proceed to update and push
         imageTag=$(grep -oP '(?<=frontend:)[^ ]+' deployment.yaml)
