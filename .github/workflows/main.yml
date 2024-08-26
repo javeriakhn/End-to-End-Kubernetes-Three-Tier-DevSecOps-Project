@@ -43,13 +43,13 @@ jobs:
         
     - name: Login to Amazon ECR
       run: |
-        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 891377240096.dkr.ecr.us-east-1.amazonaws.com
         
     - name: Tag Docker Image
-      run: docker tag frontend:${{ github.event.inputs.tag }} ${{ secrets.ECR_REGISTRY }}/frontend:${{ github.event.inputs.tag }}
+      run: docker tag frontend:${{ github.event.inputs.tag }} 891377240096.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.event.inputs.tag }}
         
     - name: Push Docker Image to ECR
-      run: docker push ${{ secrets.ECR_REGISTRY }}/frontend:${{ github.event.inputs.tag }}
+      run: docker push 891377240096.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.event.inputs.tag }}
         
   update-deployment:
     needs: build-and-push-frontend
@@ -78,7 +78,8 @@ jobs:
     - name: Cleanup Workspace
       run: |
         git clean -dfx
-        git reset --hard update workflow
+        git reset --hard
+
 
 
 
