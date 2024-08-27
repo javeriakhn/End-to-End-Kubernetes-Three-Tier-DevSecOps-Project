@@ -1,5 +1,4 @@
-
-name: Build and Deploy Backend to ECR
+name: Build and Deploy backend to ECR
 
 on:
   workflow_dispatch:
@@ -68,15 +67,15 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
       run: |
-        cd Kubernetes-Manifests-file/Frontend
+        cd Kubernetes-Manifests-file/Backend
         git fetch origin main
         git rebase origin/main || git rebase --abort
-
+        
     - name: Update Deployment File
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
       run: |
-        cd Kubernetes-Manifests-file/Backend
+        cd Kubernetes-Manifests-file/backend
 
         echo "Current deployment.yaml content before modification:"
         cat deployment.yaml
@@ -91,12 +90,18 @@ jobs:
 
         git add deployment.yaml
         git commit -m "Update deployment Image to version ${{ github.event.inputs.tag }}"
+
+        # Pull the latest changes before pushing
+        git pull --rebase origin main
+        
+        # Push the changes
         git push https://${{ secrets.TOKEN }}@github.com/${{ github.repository }} HEAD:main
         
     - name: Cleanup Workspace
       run: |
         git clean -dfx
         git reset --hard
+
 
 
 
