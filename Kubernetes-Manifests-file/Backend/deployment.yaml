@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: javeriakashan/backend:13
+        image: javeriakashan/backend:neww
         imagePullPolicy: Always
         env:
           - name: MONGO_CONN_STR
