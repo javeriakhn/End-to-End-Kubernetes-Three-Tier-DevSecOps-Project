@@ -76,7 +76,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
       run: |
-        cd Kubernetes-Manifests-file/backend
+        cd Kubernetes-Manifests-file/Backend
 
         echo "Current deployment.yaml content before modification:"
         cat deployment.yaml
