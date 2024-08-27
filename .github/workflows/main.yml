@@ -6,7 +6,7 @@ on:
       tag:
         description: 'Docker image tag for backend'
         required: true
-        default: 'new'
+        default: 'latest'
         type: string
 
 jobs:
