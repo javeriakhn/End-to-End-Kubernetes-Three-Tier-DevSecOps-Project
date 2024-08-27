@@ -67,9 +67,9 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
       run: |
-        cd Kubernetes-Manifests-file/Backend
+        cd Kubernetes-Manifests-file/Frontend
         git fetch origin main
-        git rebase origin/main || git rebase --abort
+        git rebase origin/main || (git rebase --skip && echo "Conflict skipped" || git rebase --abort)
         
     - name: Update Deployment File
       env:
@@ -91,17 +91,13 @@ jobs:
         git add deployment.yaml
         git commit -m "Update deployment Image to version ${{ github.event.inputs.tag }}"
 
-        # Pull the latest changes before pushing
         git pull --rebase origin main
-        
-        # Push the changes
         git push https://${{ secrets.TOKEN }}@github.com/${{ github.repository }} HEAD:main
         
     - name: Cleanup Workspace
       run: |
         git clean -dfx
         git reset --hard
-
 
 
 
