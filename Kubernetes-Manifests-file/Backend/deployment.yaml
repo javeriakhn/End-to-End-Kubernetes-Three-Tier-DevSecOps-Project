@@ -21,9 +21,11 @@ spec:
       labels:
         role: api
     spec:
+      imagePullSecrets:
+      - name: ecr-registry-secret
       containers:
       - name: api
-        image: 891377240096.dkr.ecr.us-east-1.amazonaws.com/javeriakashan/backend:NEWW  # Updated to ECR URL
+        image: 891377240096.dkr.ecr.us-east-1.amazonaws.com/backend:latest
         imagePullPolicy: Always
         env:
           - name: MONGO_CONN_STR
@@ -60,7 +62,3 @@ spec:
           initialDelaySeconds: 0
           periodSeconds: 10
           failureThreshold: 30
-      imagePullSecrets:
-        - name: ecr-regcred  # Reference the secret for ECR
-
-     
