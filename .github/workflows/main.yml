@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Docker image tag for frontend'
+        description: 'Docker image tag for backend'
         required: true
-        default: 'latest'
+        default: 'new'
         type: string
 
 jobs:
@@ -45,10 +45,10 @@ jobs:
         aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 891377240096.dkr.ecr.us-east-1.amazonaws.com
         
     - name: Tag Docker Image
-      run: docker tag backend:${{ github.event.inputs.tag }} 891377240096.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.event.inputs.tag }}
+      run: docker tag backend:${{ github.event.inputs.tag }} 891377240096.dkr.ecr.us-east-1.amazonaws.com/backend:${{ github.event.inputs.tag }}
         
     - name: Push Docker Image to ECR
-      run: docker push 891377240096.dkr.ecr.us-east-1.amazonaws.com/frontend:${{ github.event.inputs.tag }}
+      run: docker push 891377240096.dkr.ecr.us-east-1.amazonaws.com/backend:${{ github.event.inputs.tag }}
         
   update-deployment:
     needs: build-and-push-backend
@@ -67,7 +67,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
       run: |
-        cd Kubernetes-Manifests-file/Frontend
+        cd Kubernetes-Manifests-file/Backend
         git fetch origin master
         git rebase origin/master || (git rebase --skip && echo "Conflict skipped" || git rebase --abort)
         
@@ -75,12 +75,12 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
       run: |
-        cd Kubernetes-Manifests-file/Frontend
+        cd Kubernetes-Manifests-file/Backend
         echo "Current deployment.yaml content before modification:"
         cat deployment.yaml
-        imageTag=$(grep -oP '(?<=frontend:)[^ ]+' deployment.yaml)
+        imageTag=$(grep -oP '(?<=backend:)[^ ]+' deployment.yaml)
         echo "Parsed imageTag=${imageTag}"
-        sed -i "s/frontend:${imageTag}/frontend:${{ github.event.inputs.tag }}/" deployment.yaml
+        sed -i "s/frontend:${imageTag}/backend:${{ github.event.inputs.tag }}/" deployment.yaml
         echo "Updated deployment.yaml content after modification:"
         cat deployment.yaml
         git add deployment.yaml
