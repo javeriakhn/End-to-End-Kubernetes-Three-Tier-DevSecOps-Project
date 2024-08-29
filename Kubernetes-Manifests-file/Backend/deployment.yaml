@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: api
-        image: 891377240096.dkr.ecr.us-east-1.amazonaws.com/javeriakashan/backend:latest  # Updated to ECR URL
+        image: 891377240096.dkr.ecr.us-east-1.amazonaws.com/javeriakashan/backend:NEWW  # Updated to ECR URL
         imagePullPolicy: Always
         env:
           - name: MONGO_CONN_STR
